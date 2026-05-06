@@ -542,6 +542,23 @@ function showSection(id){
   window.scrollTo(0,0);
 }
 
+// ── Configuración Supabase
+const SB_URL = 'https://yebbsyqdrpluemjjvfwg.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InllYmJzeXFkcnBsdWVtamp2ZndnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwODQ0NzIsImV4cCI6MjA5MzY2MDQ3Mn0.73PTJFEOXs73QVe6V8mwg6gaSgtW_ECcFDGJg9e5E8Q';
+
+async function sbFetch(path, options = {}) {
+  const res = await fetch(`${SB_URL}/rest/v1/${path}`, {
+    headers: {
+      'apikey': SB_KEY,
+      'Authorization': `Bearer ${SB_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': options.prefer || ''
+    },
+    ...options
+  });
+  return res;
+}
+
 // Centro de referencia mientras carga el GeoJSON
 const MUGICA_CENTER = [-34.5805, -58.3700];
 const GEOJSON_URL = 'https://cdn.buenosaires.gob.ar/datosabiertos/datasets/ministerio-de-desarrollo-humano-y-habitat/barrios-populares/barrios_populares_poligono.geojson';
@@ -599,35 +616,8 @@ function initMap(){
   // Cargar polígono oficial desde datos CABA
   cargarPoligonoMugica(mainMap);
 
-  // Reportes de ejemplo con datos para filtrar
-  const reportesData = [
-    {lat:-34.5782,lng:-58.3742,sector:'San Martín',estado:'En gestión',desc:'Problema en acceso'},
-    {lat:-34.5808,lng:-58.3672,sector:'Güemes',estado:'Pendiente',desc:'Vía interna cortada'},
-    {lat:-34.5799,lng:-58.3648,sector:'Playón Este',estado:'Resuelto',desc:'Espacio comunitario'},
-    {lat:-34.5792,lng:-58.3772,sector:'Cristo Obrero',estado:'Pendiente',desc:'Reporte de vecinos'},
-    {lat:-34.5838,lng:-58.3718,sector:'YPF',estado:'En gestión',desc:'Luminaria rota'},
-  ];
-
-  const colors={Resuelto:'#2E7D32','En gestión':'#E65100',Pendiente:'#C62828'};
-
-  reportesData.forEach(r=>{
-    const icon=L.divIcon({className:'',
-      html:`<div style="background:${colors[r.estado]};width:14px;height:14px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 2px 5px rgba(0,0,0,.4)"></div>`,
-      iconSize:[14,14], iconAnchor:[7,7]});
-    const mk = L.marker([r.lat,r.lng],{icon}).addTo(mainMap);
-    mk.bindPopup(`
-      <div style="font-size:13px;min-width:150px">
-        <b style="color:#1565C0">${r.sector}</b><br>
-        <span style="color:#555;font-size:12px">${r.desc}</span><br>
-        <span style="color:${colors[r.estado]};font-weight:700;font-size:12px">● ${r.estado}</span>
-        <br><button onclick="irAReportarConUbicacion(${r.lat},${r.lng},'${r.sector}')"
-          style="margin-top:6px;width:100%;background:#1565C0;color:#fff;border:none;border-radius:6px;padding:5px;font-size:11px;font-weight:700;cursor:pointer">
-          + Agregar reporte aquí
-        </button>
-      </div>`);
-    mk._estado = r.estado;
-    reporteMarkers.push(mk);
-  });
+  // Cargar reportes reales desde Supabase
+  cargarReportesEnMapa();
 
   mainMap.setView(MUGICA_CENTER, 16);
 
@@ -637,6 +627,49 @@ function initMap(){
     desactivarModoReporte();
     irAReportarConUbicacion(e.latlng.lat, e.latlng.lng, null);
   });
+}
+
+async function cargarReportesEnMapa() {
+  // Limpiar marcadores anteriores
+  reporteMarkers.forEach(mk => mainMap.removeLayer(mk));
+  reporteMarkers = [];
+
+  try {
+    const res = await sbFetch('reportes?select=*&order=created_at.desc');
+    const data = await res.json();
+
+    const colors = {Resuelto:'#2E7D32','En gestión':'#E65100',Pendiente:'#C62828'};
+
+    data.forEach(r => {
+      if(!r.latitud || !r.longitud) return;
+      const color = colors[r.estado] || '#888';
+      const icon = L.divIcon({className:'',
+        html:`<div style="background:${color};width:14px;height:14px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 2px 5px rgba(0,0,0,.4)"></div>`,
+        iconSize:[14,14], iconAnchor:[7,7]});
+      const mk = L.marker([r.latitud, r.longitud], {icon}).addTo(mainMap);
+      mk.bindPopup(`
+        <div style="font-size:13px;min-width:160px">
+          <b style="color:#1565C0">${r.sector || 'Sin sector'}</b><br>
+          <span style="color:#555;font-size:11px">${r.categoria || ''}</span><br>
+          <span style="font-size:12px;line-height:1.4">${r.descripcion}</span><br>
+          <span style="color:${color};font-weight:700;font-size:12px">● ${r.estado}</span><br>
+          <span style="color:#aaa;font-size:10px">${new Date(r.created_at).toLocaleDateString('es-AR')}</span>
+          <br><button onclick="irAReportarConUbicacion(${r.latitud},${r.longitud},'${r.sector}')"
+            style="margin-top:6px;width:100%;background:#1565C0;color:#fff;border:none;border-radius:6px;padding:5px;font-size:11px;font-weight:700;cursor:pointer">
+            + Agregar reporte aquí
+          </button>
+        </div>`);
+      mk._estado = r.estado;
+      reporteMarkers.push(mk);
+    });
+
+    // Reaplicar filtro activo
+    const filtroActivo = document.querySelector('.map-filter.active');
+    if(filtroActivo) filterMaparkers(filtroActivo.dataset.filter, filtroActivo);
+
+  } catch(e) {
+    console.warn('No se pudieron cargar los reportes:', e);
+  }
 }
 
 function filterMaparkers(estado, btn) {
@@ -711,15 +744,53 @@ function resetJuridico(){
   document.getElementById('conf-check').checked=false;
 }
 function handleFile(i){if(i.files[0])document.getElementById('file-name').textContent='📎 '+i.files[0].name;}
-function submitForm(){
+async function submitForm(){
   if(!document.getElementById('cat').value||!document.getElementById('sector').value||!document.getElementById('desc').value){
     alert('Por favor completá la categoría, el sector y la descripción.');return;
   }
   if(!document.getElementById('lat-input').value){
     alert('Por favor marcá la ubicación del problema en el mapa.');return;
   }
-  document.getElementById('form-content').classList.add('hidden');
-  document.getElementById('success-msg').classList.remove('hidden');
+
+  const btn = document.querySelector('#form-content .submit-btn');
+  btn.textContent = 'Enviando...';
+  btn.disabled = true;
+
+  const reporte = {
+    sector: document.getElementById('sector').value,
+    categoria: document.getElementById('cat').value,
+    descripcion: document.getElementById('desc').value,
+    direccion: document.getElementById('dir').value || null,
+    latitud: parseFloat(document.getElementById('lat-input').value),
+    longitud: parseFloat(document.getElementById('lng-input').value),
+    nombre_vecino: document.getElementById('nombre').value || null,
+    contacto: document.getElementById('contacto').value || null,
+    estado: 'Pendiente'
+  };
+
+  try {
+    const res = await sbFetch('reportes', {
+      method: 'POST',
+      prefer: 'return=minimal',
+      body: JSON.stringify(reporte)
+    });
+    if(res.ok) {
+      document.getElementById('form-content').classList.add('hidden');
+      document.getElementById('success-msg').classList.remove('hidden');
+      // Recargar marcadores del mapa si ya está inicializado
+      if(mainMap) cargarReportesEnMapa();
+    } else {
+      const err = await res.text();
+      alert('Error al enviar el reporte. Intentá de nuevo.');
+      console.error(err);
+      btn.textContent = 'Enviar reporte →';
+      btn.disabled = false;
+    }
+  } catch(e) {
+    alert('Error de conexión. Verificá tu internet.');
+    btn.textContent = 'Enviar reporte →';
+    btn.disabled = false;
+  }
 }
 
 let miniMap=null, marker=null;
