@@ -1,113 +1,784 @@
-[elbarriohabla-v1.html](https://github.com/user-attachments/files/27452341/elbarriohabla-v1.html)
-[README.md](https://github.com/user-attachments/files/27452342/README.md)# El Barrio Habla
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1565C0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="El Barrio Habla">
+<meta name="description" content="Reportá problemas en el Barrio Padre Carlos Mugica">
+<title>El Barrio Habla</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:system-ui,-apple-system,sans-serif;color:#1a1a1a;background:#fff;overflow-x:hidden}
+:root{
+  --pj-blue:#1565C0;--pj-blue-dark:#0D47A1;--pj-sky:#42A5F5;
+  --pj-sky-light:#E3F2FD;--pj-red:#C62828;--gray:#F5F7FA;
+  --border:#BBDEFB;--text-dark:#0D2B5E;--touch:52px;
+}
 
-Aplicación web móvil para el reporte de problemas urbanos en el **Barrio Padre Carlos Mugica** (Villa 31 y 31bis), Comuna 1, Ciudad Autónoma de Buenos Aires.
+nav{background:var(--pj-blue);padding:0 1rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:1000;box-shadow:0 2px 8px rgba(13,71,161,.3)}
+.nav-logo .l1{font-size:16px;font-weight:800;color:#fff}
+.nav-logo .l2{font-size:9px;color:rgba(255,255,255,.6)}
+.nav-cta{background:var(--pj-sky);color:var(--pj-blue-dark);border:none;height:38px;padding:0 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer}
 
----
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;z-index:1000;padding-bottom:env(safe-area-inset-bottom)}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;height:56px;cursor:pointer;color:#90A4AE;font-size:10px;gap:3px;border:none;background:none;padding:0}
+.bn-item.active{color:var(--pj-blue)}
+.bn-item svg{width:22px;height:22px}
 
-## ¿Qué es?
+.hero{background:var(--pj-blue);padding:2.5rem 1.25rem 3rem;text-align:center;position:relative}
+.hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--pj-blue-dark),var(--pj-sky),var(--pj-red))}
+.hero h1{font-size:24px;font-weight:800;color:#fff;line-height:1.25;margin-bottom:.5rem}
+.hero h1 em{font-style:normal;color:var(--pj-sky)}
+.hero p{font-size:13.5px;color:rgba(255,255,255,.8);line-height:1.6;margin-bottom:1.5rem}
+.hero-btns{display:flex;flex-direction:column;gap:.75rem;max-width:300px;margin:0 auto}
+.btn-primary{background:var(--pj-sky);color:var(--pj-blue-dark);border:none;height:var(--touch);border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;width:100%}
+.btn-juridico{background:#4527A0;color:#fff;border:none;height:var(--touch);border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;width:100%}
+.btn-juridico:hover{background:#311B92}
+.btn-mapa{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.4);height:var(--touch);border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;width:100%;margin-top:.5rem;display:block}
+.btn-mapa:hover{border-color:#fff;background:rgba(255,255,255,.1)}
+.hero-tag{display:inline-block;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.85);border-radius:20px;padding:5px 14px;font-size:11px;margin-top:1.25rem}
 
-**El Barrio Habla** es una herramienta de participación vecinal que permite a los residentes del Barrio Padre Carlos Mugica registrar problemas urbanos, geolocalizarlos en un mapa y hacer seguimiento de su estado de gestión. Los reportes quedan visibles públicamente en el mapa del barrio.
+section{padding:1.75rem 1.25rem;padding-bottom:calc(1.75rem + 56px)}
+.section-label{font-size:10px;font-weight:700;color:var(--pj-sky);letter-spacing:2px;text-transform:uppercase;margin-bottom:.3rem}
+.section-title{font-size:19px;font-weight:800;color:var(--text-dark);margin-bottom:.4rem}
+.section-sub{font-size:13px;color:#666;margin-bottom:1.25rem;line-height:1.6}
 
-La aplicación también incluye un canal de **asesoramiento jurídico** para que los vecinos puedan hacer consultas al Ministerio Público de la Defensa o a la Junta Comunal 1.
+.sectores{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.25rem}
+.sector-pill{background:var(--pj-sky-light);color:var(--pj-blue);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:500}
 
----
+.notice{background:var(--pj-sky-light);border:1px solid var(--border);border-radius:10px;padding:.75rem 1rem;font-size:13px;color:var(--text-dark);margin-bottom:1.25rem;line-height:1.5}
+.notice strong{color:var(--pj-blue)}
 
-## Funcionalidades
+.cards-placeholder{background:var(--pj-sky-light);border:2px dashed var(--border);border-radius:10px;padding:1.5rem;text-align:center;color:var(--pj-blue)}
+.cards-placeholder p{font-size:14px;font-weight:600;margin-bottom:.3rem}
+.cards-placeholder small{font-size:12px;color:#777}
 
-### Reporte de problemas
-- Formulario con categoría, sector del barrio, descripción y foto
-- Geolocalización por GPS o marcando manualmente en el mapa
-- Pin arrastrable para ajustar la ubicación con precisión
+.stats-bar{background:var(--pj-blue-dark);padding:1.5rem 1.25rem}
+.stats-row{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem}
+.stat{text-align:center;padding:.75rem;background:rgba(255,255,255,.08);border-radius:10px}
+.stat-num{font-size:22px;font-weight:800;color:var(--pj-sky)}
+.stat-label{font-size:11px;color:rgba(255,255,255,.65);margin-top:.2rem}
 
-### Mapa interactivo
-- Mapa público con todos los reportes del barrio
-- Polígono oficial del barrio cargado desde los datos abiertos del GCBA
-- Filtros por estado: Pendiente / En gestión / Resuelto
-- Modo "reportar desde el mapa": tocás el punto del problema y se pre-carga la ubicación en el formulario
+#map{height:55vw;min-height:260px;max-height:380px;border-radius:12px;border:1px solid var(--border);margin-top:1rem}
 
-### Asesoramiento jurídico
-- Formulario de consulta con sector, descripción de la situación y datos de contacto opcionales
+.recent-table{width:100%;border-collapse:collapse;font-size:13px}
+.recent-table th{text-align:left;padding:10px;background:var(--pj-blue);color:#fff;font-size:11px;text-transform:uppercase;letter-spacing:.3px;font-weight:600}
+.recent-table th:first-child{border-radius:8px 0 0 0}
+.recent-table th:last-child{border-radius:0 8px 0 0}
+.recent-table td{padding:10px;border-bottom:1px solid #E3F2FD}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.badge-verde{background:#E8F5E9;color:#2E7D32}
+.badge-amarillo{background:#FFF8E1;color:#F57F17}
+.badge-rojo{background:#FFEBEE;color:#C62828}
 
-### Instalable como app
-- Compatible con "Agregar a pantalla de inicio" en Android e iOS (PWA-ready)
+.form-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:1.25rem;box-shadow:0 2px 16px rgba(21,101,192,.07)}
+.form-row{margin-bottom:1.1rem}
+label{display:block;font-size:11px;font-weight:700;margin-bottom:.4rem;color:var(--text-dark);text-transform:uppercase;letter-spacing:.4px}
+input,select,textarea{width:100%;padding:13px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;font-family:inherit;color:#1a1a1a;background:#fff;-webkit-appearance:none;appearance:none}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--pj-blue)}
+textarea{resize:vertical;min-height:100px}
+.cam-btn{display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;height:var(--touch);background:var(--pj-sky-light);color:var(--pj-blue);border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:.5rem}
+.upload-area{border:1.5px dashed var(--border);border-radius:10px;padding:1.25rem;text-align:center;color:#90A4AE;font-size:13px;cursor:pointer;background:#fafbfd}
+.submit-btn{width:100%;background:var(--pj-blue);color:#fff;border:none;height:var(--touch);border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;margin-top:.5rem}
+.submit-btn:active{background:var(--pj-blue-dark)}
 
----
+.pasos{display:flex;flex-direction:column;gap:1rem}
+.paso{display:flex;gap:.875rem;align-items:flex-start}
+.paso-num{background:var(--pj-blue);color:#fff;min-width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+.paso-text h4{font-size:14px;font-weight:700;margin-bottom:.2rem;color:var(--text-dark)}
+.paso-text p{font-size:13px;color:#666;line-height:1.5}
 
-## Sectores del barrio
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.5rem}
+.stat-box{border-radius:10px;padding:.9rem;text-align:center}
+.stat-box .num{font-size:24px;font-weight:800}
+.stat-box .lbl{font-size:11px;margin-top:.2rem;opacity:.75}
+.sb-blue{background:var(--pj-blue);color:#fff}.sb-blue .num{color:var(--pj-sky)}
+.sb-green{background:#1B5E20;color:#fff}.sb-green .num{color:#A5D6A7}
+.sb-orange{background:#E65100;color:#fff}.sb-orange .num{color:#FFE0B2}
+.sb-red{background:#B71C1C;color:#fff}.sb-red .num{color:#FFCDD2}
 
-San Martín · Inmigrantes · Güemes · Playón Este · Playón Oeste · YPF · Ferroviario · Cristo Obrero · Comunicaciones · Viviendas Nuevas YPF · Viviendas Nuevas Containera
+.install-banner{background:var(--pj-blue);color:#fff;padding:.875rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem}
+.install-banner p{font-size:13px;line-height:1.4}
+.install-banner p strong{display:block;font-size:14px}
+.install-btn{background:var(--pj-sky);color:var(--pj-blue-dark);border:none;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.close-banner{background:none;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer;padding:0 4px;flex-shrink:0}
 
----
+.map-filter{background:#fff;border:1.5px solid var(--border);color:#555;border-radius:20px;padding:6px 13px;font-size:12px;font-weight:600;cursor:pointer}
+.map-filter.active{background:var(--pj-blue);color:#fff;border-color:var(--pj-blue)}
+.stripe{height:4px;background:linear-gradient(90deg,var(--pj-blue-dark),var(--pj-blue),var(--pj-sky),var(--pj-red))}
+footer{background:var(--pj-blue-dark);color:rgba(255,255,255,.5);text-align:center;padding:1.25rem;font-size:12px;padding-bottom:calc(1.25rem + 56px)}
+footer strong{color:var(--pj-sky)}
+.hidden{display:none}
+</style>
+</head>
+<body>
 
-## Tecnologías
+<div id="install-banner" class="install-banner hidden">
+  <button class="close-banner" onclick="closeBanner()">×</button>
+  <p><strong>📲 Instalá la app</strong>Agregala a tu pantalla de inicio</p>
+  <button class="install-btn" id="install-btn">Instalar</button>
+</div>
 
-| Componente | Tecnología |
-|---|---|
-| Frontend | HTML / CSS / JavaScript (sin frameworks) |
-| Mapas | [Leaflet.js](https://leafletjs.com/) v1.9.4 |
-| Tiles | OpenStreetMap |
-| Polígono del barrio | GeoJSON oficial — [Datos Abiertos GCBA](https://cdn.buenosaires.gob.ar/datosabiertos/datasets/ministerio-de-desarrollo-humano-y-habitat/barrios-populares/barrios_populares_poligono.geojson) |
-| Base de datos | *(próximamente — Supabase)* |
-| Hosting | *(próximamente — GitHub Pages)* |
+<nav>
+  <div class="nav-logo">
+    <div class="l1">El Barrio Habla</div>
+    <div class="l2">Barrio Padre Carlos Mugica · CABA</div>
+  </div>
+  <button class="nav-cta" onclick="showSection('reportar')">+ Reportar</button>
+</nav>
 
-El archivo `elbarriohabla-v1.html` es autocontenido: no requiere servidor, instalación ni dependencias locales. Funciona abriéndolo directamente en el navegador.
+<!-- INICIO -->
+<div id="sec-inicio">
+  <div class="hero">
+    <h1>Tu barrio en tus manos,<br><em>tu voz hace la diferencia</em></h1>
+    <p>Reportá problemas en el Barrio Padre Carlos Mugica. Tu reporte llega a la Junta Comunal 1 y al GCBA.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="showSection('reportar')">📝 Registrar un problema</button>
+      <button class="btn-juridico" onclick="showSection('juridico')">⚖️ Asesoramiento jurídico</button>
+    </div>
+    <button class="btn-mapa" onclick="showSection('mapa')">🗺 Ver el mapa</button>
+    <div class="hero-tag">📍 Barrio Padre Carlos Mugica · Comuna 1 · Retiro</div>
+  </div>
 
----
+  <section style="background:var(--gray)">
+    <p class="section-label">El barrio</p>
+    <p class="section-title">9 sectores</p>
+    <p class="section-sub">Los reportes se identifican por sector para un mejor seguimiento.</p>
+    <div class="sectores">
+      <span class="sector-pill">San Martín</span><span class="sector-pill">Inmigrantes</span>
+      <span class="sector-pill">Güemes</span><span class="sector-pill">Playón Este</span>
+      <span class="sector-pill">Playón Oeste</span><span class="sector-pill">YPF</span>
+      <span class="sector-pill">Ferroviario</span><span class="sector-pill">Cristo Obrero</span>
+      <span class="sector-pill">Comunicaciones</span>
+    </div>
+    <p class="section-label" style="margin-top:1.25rem">Categorías</p>
+    <p class="section-title">¿Qué podés reportar?</p>
+    <div class="cards-placeholder">
+      <p>🏗️ Categorías en definición participativa</p>
+      <small>Las categorías específicas del barrio serán incorporadas en colaboración con los vecinos y vecinas.</small>
+    </div>
+  </section>
 
-## Estructura del proyecto
+  <div class="stats-bar">
+    <div class="stats-row">
+      <div class="stat"><div class="stat-num">9</div><div class="stat-label">Sectores</div></div>
+      <div class="stat"><div class="stat-num">72 ha</div><div class="stat-label">Superficie</div></div>
+      <div class="stat"><div class="stat-num">43.190</div><div class="stat-label">Habitantes</div></div>
+      <div class="stat"><div class="stat-num">10.076</div><div class="stat-label">Viviendas</div></div>
+    </div>
+  </div>
 
-```
-elbarriohabla/
-├── elbarriohabla-v1.html   # Aplicación completa (archivo único)
-├── README.md               # Este archivo
-└── sql/
-    └── schema.sql          # (próximamente) Esquema de base de datos Supabase
-```
+  <section style="background:#fff;border-top:4px solid #4527A0">
+    <p class="section-label" style="color:#4527A0">Servicio gratuito</p>
+    <p class="section-title" style="color:#1a1a1a">⚖️ Asesoramiento jurídico gratuito</p>
+    <p class="section-sub">Si tenés un problema legal, podés solicitar una consulta gratuita. Un abogado del equipo te contactará en 2–3 días hábiles por WhatsApp.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1.25rem">
+      <div style="background:#E8EAF6;border-radius:10px;padding:.75rem;display:flex;align-items:center;gap:.5rem;font-size:12.5px;font-weight:600;color:#283593">👨‍👩‍👧 Familia</div>
+      <div style="background:#FFEBEE;border-radius:10px;padding:.75rem;display:flex;align-items:center;gap:.5rem;font-size:12.5px;font-weight:600;color:#B71C1C">⚖️ Penal</div>
+      <div style="background:#F3E5F5;border-radius:10px;padding:.75rem;display:flex;align-items:center;gap:.5rem;font-size:12.5px;font-weight:600;color:#6A1B9A">♀️ Género</div>
+      <div style="background:#FFF3E0;border-radius:10px;padding:.75rem;display:flex;align-items:center;gap:.5rem;font-size:12.5px;font-weight:600;color:#E65100">🏠 Vivienda</div>
+      <div style="background:#E8F5E9;border-radius:10px;padding:.75rem;display:flex;align-items:center;gap:.5rem;font-size:12.5px;font-weight:600;color:#1B5E20">👷 Laboral</div>
+      <div style="background:#E3F2FD;border-radius:10px;padding:.75rem;display:flex;align-items:center;gap:.5rem;font-size:12.5px;font-weight:600;color:#0D47A1">📋 Administrativo</div>
+      <div style="background:#F1F8E9;border-radius:10px;padding:.75rem;display:flex;align-items:center;gap:.5rem;font-size:12.5px;font-weight:600;color:#33691E">👶 Niñez</div>
+      <div style="background:#EDE7F6;border-radius:10px;padding:.75rem;display:flex;align-items:center;gap:.5rem;font-size:12.5px;font-weight:600;color:#4527A0">🧓 Adultos mayores</div>
+    </div>
+    <button class="btn-primary" style="width:100%;background:#4527A0;color:#fff" onclick="showSection('juridico')">Solicitar asesoramiento gratuito →</button>
+  </section>
 
----
+  <section>
+    <p class="section-label">Proceso</p>
+    <p class="section-title">¿Cómo funciona?</p>
+    <div class="pasos">
+      <div class="paso"><div class="paso-num">1</div><div class="paso-text"><h4>Registrá el problema</h4><p>Elegí el sector, describí la situación y sacá una foto desde el celular.</p></div></div>
+      <div class="paso"><div class="paso-num">2</div><div class="paso-text"><h4>Marcá la ubicación</h4><p>Señalá el punto exacto en el mapa del barrio.</p></div></div>
+      <div class="paso"><div class="paso-num">3</div><div class="paso-text"><h4>Se genera el informe</h4><p>Cada quincena los reportes se presentan ante la Junta Comunal 1 y el GCBA.</p></div></div>
+    </div>
+  </section>
+</div>
 
-## Cómo usar en desarrollo
+<!-- MAPA -->
+<div id="sec-mapa" class="hidden">
+  <section style="background:var(--gray);padding-top:1.25rem">
+    <p class="section-label">Geolocalización</p>
+    <p class="section-title">Mapa del Barrio Mugica</p>
+    <p class="section-sub">Tocá un punto para ver el reporte. O tocá el botón para marcar un problema nuevo.</p>
 
-No requiere instalación. Clonar el repositorio y abrir el HTML en el navegador:
+    <!-- Filtros de estado -->
+    <div id="map-filters" style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.75rem">
+      <button class="map-filter active" data-filter="todos" onclick="filterMaparkers('todos',this)">Todos</button>
+      <button class="map-filter" data-filter="Pendiente" onclick="filterMaparkers('Pendiente',this)">🔴 Pendiente</button>
+      <button class="map-filter" data-filter="En gestión" onclick="filterMaparkers('En gestión',this)">🟠 En gestión</button>
+      <button class="map-filter" data-filter="Resuelto" onclick="filterMaparkers('Resuelto',this)">🟢 Resuelto</button>
+    </div>
 
-```bash
-git clone https://github.com/tu-usuario/elbarriohabla.git
-cd elbarriohabla
-open elbarriohabla-v1.html
-```
+    <div id="map"></div>
 
----
+    <!-- Botón para reportar desde el mapa -->
+    <button id="btn-reportar-mapa" onclick="activarModoReporte()" style="width:100%;margin-top:.75rem;background:var(--pj-blue);color:#fff;border:none;height:46px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.5rem">
+      📍 Marcá un problema en el mapa
+    </button>
+    <div id="hint-reporte-mapa" class="hidden" style="background:#FFF3E0;border:1px solid #FFB74D;border-radius:8px;padding:.6rem .875rem;font-size:12.5px;color:#E65100;margin-top:.5rem;text-align:center">
+      ✋ Tocá el punto exacto del problema en el mapa
+    </div>
+  </section>
+  <section>
+    <p class="section-label">Últimos registros</p>
+    <p class="section-title">Reportes recientes</p>
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+      <table class="recent-table" style="min-width:320px">
+        <thead><tr><th>Sector</th><th>Descripción</th><th>Estado</th></tr></thead>
+        <tbody>
+          <tr><td>San Martín</td><td>Problema en acceso</td><td><span class="badge badge-amarillo">En gestión</span></td></tr>
+          <tr><td>Cristo Obrero</td><td>Reporte de vecinos</td><td><span class="badge badge-rojo">Pendiente</span></td></tr>
+          <tr><td>Playón Este</td><td>Espacio comunitario</td><td><span class="badge badge-verde">Resuelto</span></td></tr>
+          <tr><td>Inmigrantes</td><td>Reporte del sector</td><td><span class="badge badge-amarillo">En gestión</span></td></tr>
+          <tr><td>Güemes</td><td>Vía interna del barrio</td><td><span class="badge badge-rojo">Pendiente</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
 
-## Hoja de ruta
+<!-- ESTADÍSTICAS -->
+<div id="sec-estadisticas" class="hidden">
+  <section>
+    <p class="section-label">Datos</p>
+    <p class="section-title">Estadísticas</p>
+    <div class="stat-grid">
+      <div class="stat-box sb-blue"><div class="num">0</div><div class="lbl">Total</div></div>
+      <div class="stat-box sb-green"><div class="num">0</div><div class="lbl">Resueltos</div></div>
+      <div class="stat-box sb-orange"><div class="num">0</div><div class="lbl">En gestión</div></div>
+      <div class="stat-box sb-red"><div class="num">0</div><div class="lbl">Pendientes</div></div>
+    </div>
+    <div class="notice"><strong>📊 Panel en construcción.</strong> Se poblará cuando se registren reportes reales. Las categorías se definirán en la etapa participativa.</div>
+    <p style="font-size:15px;font-weight:700;color:var(--text-dark);margin-bottom:.875rem">Por sector</p>
+    <div id="bar-sectores" style="display:flex;flex-direction:column;gap:.6rem"></div>
+  </section>
+</div>
 
-- [x] Formulario de reporte con geolocalización
-- [x] Mapa público con filtros por estado
-- [x] Modo "reportar desde el mapa"
-- [x] Polígono oficial del barrio (datos abiertos GCBA)
-- [x] Formulario de asesoramiento jurídico
-- [ ] Conexión a base de datos (Supabase)
-- [ ] Panel de moderación para administradores
-- [ ] Notificaciones de cambio de estado al vecino
-- [ ] Categorías definidas participativamente con los vecinos
+<!-- REPORTAR -->
+<div id="sec-reportar" class="hidden">
+  <section style="background:var(--gray);padding-top:1.25rem">
+    <p class="section-label">Participación ciudadana</p>
+    <p class="section-title">Registrar reporte</p>
+    <div class="form-card">
+      <div id="form-content">
+        <div class="notice"><strong>ℹ️ Categorías en definición.</strong> Por ahora podés seleccionar una categoría general.</div>
+        <div class="form-row">
+          <label>Categoría del problema</label>
+          <select id="cat">
+            <option value="">— A definir con la comunidad —</option>
+            <option>🔧 Infraestructura / servicios</option>
+            <option>🏠 Vivienda</option>
+            <option>🌿 Espacio público / verde</option>
+            <option>💧 Agua y cloacas</option>
+            <option>⚡ Electricidad</option>
+            <option>🗑️ Residuos</option>
+            <option>🚶 Accesibilidad / circulación</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Sector del barrio</label>
+          <select id="sector">
+            <option value="">Seleccioná el sector</option>
+            <option>San Martín</option><option>Inmigrantes</option><option>Güemes</option>
+            <option>Playón Este</option><option>Playón Oeste</option><option>YPF</option>
+            <option>Ferroviario</option><option>Cristo Obrero</option><option>Comunicaciones</option>
+            <option>Viviendas Nuevas YPF</option><option>Viviendas Nuevas Containera</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Referencia dentro del barrio</label>
+          <input type="text" id="dir" placeholder="Calle interna, manzana, lugar conocido">
+        </div>
+        <div class="form-row">
+          <label>Descripción</label>
+          <textarea id="desc" placeholder="¿Desde cuándo ocurre? ¿Afecta a muchas familias? ¿Hay riesgo?"></textarea>
+        </div>
+        <div class="form-row">
+          <label>Ubicación exacta del problema</label>
+          <div style="font-size:12px;color:#888;margin-bottom:.4rem">Tocá el punto exacto dentro del barrio. Podés arrastrar el marcador para ajustarlo.</div>
+          <div id="mini-map" style="height:220px;border-radius:10px;border:1.5px solid var(--border);margin-bottom:.4rem"></div>
+          <div id="coords-display" style="font-size:12px;color:#888;text-align:center;padding:4px;background:var(--gray);border-radius:6px">
+            📍 Tocá el mapa para marcar la ubicación
+          </div>
+          <input type="hidden" id="lat-input">
+          <input type="hidden" id="lng-input">
+          <button type="button" onclick="useMyLocation()" style="width:100%;margin-top:.5rem;background:var(--pj-sky-light);color:var(--pj-blue);border:1.5px solid var(--border);border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer">
+            📡 Usar mi ubicación actual
+          </button>
+        </div>
 
----
+        <div class="form-row">
+          <label>Foto del problema</label>
+          <button class="cam-btn" onclick="document.getElementById('cam-input').click()">📷 Sacar foto ahora</button>
+          <input id="cam-input" type="file" accept="image/*" capture="environment" style="display:none" onchange="handleFile(this)">
+          <div class="upload-area" onclick="document.getElementById('file-input').click()">
+            📁 O elegir desde la galería
+            <input id="file-input" type="file" accept="image/*" style="display:none" onchange="handleFile(this)">
+          </div>
+          <p id="file-name" style="font-size:12px;color:#888;margin-top:.35rem;text-align:center"></p>
+        </div>
+        <div class="form-row">
+          <label>Nombre (opcional)</label>
+          <input type="text" placeholder="Tu nombre" autocomplete="name">
+        </div>
+        <div class="form-row">
+          <label>WhatsApp (opcional)</label>
+          <input type="tel" placeholder="Para notificarte" inputmode="tel">
+        </div>
+        <button class="submit-btn" onclick="submitForm()">Enviar reporte →</button>
+      </div>
+      <div id="success-msg" class="hidden" style="text-align:center;padding:2rem .5rem">
+        <div style="font-size:52px;margin-bottom:1rem">✅</div>
+        <h3 style="font-size:20px;font-weight:800;color:var(--pj-blue);margin-bottom:.5rem">¡Reporte registrado!</h3>
+        <p style="color:#555;font-size:14px;line-height:1.65">Tu reporte fue recibido. Gracias por participar en la mejora del barrio.</p>
+        <button class="submit-btn" style="margin-top:1.5rem;max-width:260px;display:inline-block" onclick="resetForm()">Registrar otro</button>
+      </div>
+    </div>
+  </section>
+</div>
 
-## Contexto
+<!-- ASESORAMIENTO JURÍDICO -->
+<div id="sec-juridico" class="hidden">
+  <section style="background:var(--gray);padding-top:1.25rem">
+    <p class="section-label">Servicio gratuito</p>
+    <p class="section-title">Asesoramiento jurídico</p>
+    <p class="section-sub">Si tenés un problema legal, podés solicitar una consulta gratuita. Un abogado del equipo se contactará con vos en los próximos días hábiles.</p>
 
-El Barrio Padre Carlos Mugica (ex Villa 31 y 31bis) es el barrio popular más grande de la Ciudad de Buenos Aires, ubicado en el barrio de Retiro, Comuna 1. Cuenta con aproximadamente 43.190 habitantes y 10.076 viviendas distribuidas en 72 hectáreas.
+    <!-- CARDS de áreas -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.5rem">
+      <div class="card" style="border-top-color:#1565C0"><div class="card-icon">👨‍👩‍👧</div><h3>Derecho de Familia</h3><p>Divorcios, alimentos, tenencia, adopción, violencia familiar.</p></div>
+      <div class="card" style="border-top-color:#C62828"><div class="card-icon">⚖️</div><h3>Derecho Penal</h3><p>Denuncias, detenciones, defensa penal, violencia institucional.</p></div>
+      <div class="card" style="border-top-color:#6A1B9A"><div class="card-icon">♀️</div><h3>Género y Diversidad</h3><p>Violencia de género, femicidio, restricciones perimetrales, identidad.</p></div>
+      <div class="card" style="border-top-color:#E65100"><div class="card-icon">🏠</div><h3>Derecho a la Vivienda</h3><p>Desalojos, urbanización, regularización dominial, alquileres.</p></div>
+      <div class="card" style="border-top-color:#1B5E20"><div class="card-icon">👷</div><h3>Derecho Laboral</h3><p>Despidos, accidentes de trabajo, trabajo informal, ART.</p></div>
+      <div class="card" style="border-top-color:#0277BD"><div class="card-icon">📋</div><h3>Derecho Administrativo</h3><p>Trámites del Estado, habeas corpus, acceso a derechos sociales.</p></div>
+      <div class="card" style="border-top-color:#558B2F"><div class="card-icon">👶</div><h3>Niñez y Adolescencia</h3><p>Medidas tutelares, derechos del niño, situaciones con menores.</p></div>
+      <div class="card" style="border-top-color:#4527A0"><div class="card-icon">🧓</div><h3>Adultos Mayores</h3><p>Jubilaciones, pensiones, curatela, violencia hacia adultos mayores.</p></div>
+    </div>
 
-Esta herramienta fue desarrollada en el marco del trabajo de acompañamiento comunitario y seguimiento legislativo de la Comuna 1.
+    <div class="notice" style="margin-bottom:1.5rem">
+      <strong>ℹ️ ¿Cómo funciona?</strong> Completá el formulario con tu situación. En 2–3 días hábiles un abogado del equipo te contacta por WhatsApp para coordinar la consulta gratuita.
+    </div>
 
----
+    <div class="form-card">
+      <div id="form-juridico">
 
-## Fuentes de datos
+        <div class="form-row">
+          <label>Área legal de tu consulta</label>
+          <select id="area-legal">
+            <option value="">Seleccioná el área</option>
+            <optgroup label="👨‍👩‍👧 Familia">
+              <option>Alimentos / cuota alimentaria</option>
+              <option>Tenencia / régimen de visitas</option>
+              <option>Divorcio / separación</option>
+              <option>Violencia familiar</option>
+              <option>Adopción</option>
+              <option>Otro — Familia</option>
+            </optgroup>
+            <optgroup label="⚖️ Penal">
+              <option>Quiero hacer una denuncia penal</option>
+              <option>Fui detenido / detención irregular</option>
+              <option>Violencia institucional / abuso policial</option>
+              <option>Defensa en causa penal</option>
+              <option>Otro — Penal</option>
+            </optgroup>
+            <optgroup label="♀️ Género y Diversidad">
+              <option>Violencia de género / doméstica</option>
+              <option>Necesito una restricción perimetral</option>
+              <option>Situación de riesgo urgente</option>
+              <option>Identidad de género / documentación</option>
+              <option>Discriminación por género u orientación</option>
+              <option>Otro — Género</option>
+            </optgroup>
+            <optgroup label="🏠 Vivienda">
+              <option>Me quieren desalojar</option>
+              <option>Regularización / escritura del terreno</option>
+              <option>Problemas con el alquiler</option>
+              <option>Urbanización / servicios del barrio</option>
+              <option>Otro — Vivienda</option>
+            </optgroup>
+            <optgroup label="👷 Laboral">
+              <option>Me despidieron</option>
+              <option>Accidente de trabajo / ART</option>
+              <option>Trabajo no registrado (en negro)</option>
+              <option>Acoso laboral</option>
+              <option>Otro — Laboral</option>
+            </optgroup>
+            <optgroup label="📋 Administrativo">
+              <option>Acceso a un plan / beneficio social</option>
+              <option>Habeas corpus</option>
+              <option>Trámite del Estado trabado</option>
+              <option>Otro — Administrativo</option>
+            </optgroup>
+            <optgroup label="👶 Niñez y Adolescencia">
+              <option>Medida tutelar / situación de un menor</option>
+              <option>Derechos del niño vulnerados</option>
+              <option>Otro — Niñez</option>
+            </optgroup>
+            <optgroup label="🧓 Adultos Mayores">
+              <option>Jubilación / pensión</option>
+              <option>Violencia hacia adulto mayor</option>
+              <option>Curatela / incapacidad</option>
+              <option>Otro — Adultos Mayores</option>
+            </optgroup>
+          </select>
+        </div>
 
-- Polígono del barrio: [Portal de Datos Abiertos GCBA](https://data.buenosaires.gob.ar/dataset/barrios-populares)
-- Población y superficie: Censo Nacional 2022 / IVC
+        <div class="form-row">
+          <label>Sector del barrio</label>
+          <select id="sector-jur">
+            <option value="">Seleccioná tu sector</option>
+            <option>San Martín</option><option>Inmigrantes</option><option>Güemes</option>
+            <option>Playón Este</option><option>Playón Oeste</option><option>YPF</option>
+            <option>Ferroviario</option><option>Cristo Obrero</option><option>Comunicaciones</option>
+            <option>Viviendas Nuevas YPF</option><option>Viviendas Nuevas Containera</option>
+            <option>No soy del barrio Mugica</option>
+          </select>
+        </div>
 
----
+        <div class="form-row">
+          <label>Describí brevemente tu situación</label>
+          <textarea id="desc-jur" placeholder="Contanos qué está pasando. Cuanta más información des, mejor podremos orientarte. Toda la información es confidencial."></textarea>
+        </div>
 
-## Licencia
+        <div class="notice" style="background:#F3E5F5;border-color:#CE93D8;color:#4A148C;margin-bottom:1rem">
+          ⚖️ <strong>Consulta confidencial y gratuita.</strong> Toda la información que compartís es estrictamente confidencial. Un abogado del equipo te contacta en 2–3 días hábiles.
+        </div>
 
-Este proyecto es de uso comunitario y público. Podés reutilizarlo, adaptarlo y mejorarlo libremente.
+        <div class="form-row" style="margin-top:.75rem">
+          <label>Tu nombre</label>
+          <input type="text" id="nombre-jur" placeholder="Nombre y apellido" autocomplete="name">
+        </div>
+
+        <div class="form-row">
+          <label>WhatsApp <span style="color:#C62828">*</span></label>
+          <input type="tel" id="wsp-jur" placeholder="Número donde te contactamos" inputmode="tel">
+        </div>
+
+        <div class="form-row">
+          <label style="display:flex;align-items:flex-start;gap:.5rem;text-transform:none;letter-spacing:0;font-size:12px;font-weight:400;color:#555">
+            <input type="checkbox" id="conf-check" style="width:auto;margin-top:2px;flex-shrink:0">
+            Entiendo que esta es una consulta inicial gratuita y que toda la información que brindo es confidencial.
+          </label>
+        </div>
+
+        <button class="submit-btn" onclick="submitJuridico()">Solicitar asesoramiento →</button>
+      </div>
+
+      <div id="success-juridico" class="hidden" style="text-align:center;padding:2rem .5rem">
+        <div style="font-size:52px;margin-bottom:1rem">⚖️</div>
+        <h3 style="font-size:20px;font-weight:800;color:var(--pj-blue);margin-bottom:.5rem">¡Solicitud recibida!</h3>
+        <p style="color:#555;font-size:14px;line-height:1.65">En <strong>2–3 días hábiles</strong> un abogado del equipo te va a contactar por WhatsApp para coordinar la consulta gratuita.</p>
+        <p style="color:#888;font-size:12px;margin-top:.75rem">Toda la información que compartiste es estrictamente confidencial.</p>
+        <button class="submit-btn" style="margin-top:1.5rem;max-width:260px;display:inline-block" onclick="resetJuridico()">Nueva consulta</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="stripe"></div>
+<footer><strong>El Barrio Habla</strong> · Barrio Padre Carlos Mugica · Comuna 1 · CABA</footer>
+
+<nav class="bottom-nav">
+  <button class="bn-item active" id="bn-inicio" onclick="showSection('inicio')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Inicio
+  </button>
+  <button class="bn-item" id="bn-mapa" onclick="showSection('mapa')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+    Mapa
+  </button>
+  <button class="bn-item" id="bn-reportar" onclick="showSection('reportar')">
+    <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="11" fill="var(--pj-blue)"/><line x1="12" y1="7" x2="12" y2="17" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/><line x1="7" y1="12" x2="17" y2="12" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>
+    Reportar
+  </button>
+  <button class="bn-item" id="bn-estadisticas" onclick="showSection('estadisticas')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    Datos
+  </button>
+  <button class="bn-item" id="bn-juridico" onclick="showSection('juridico')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    Legal
+  </button>
+</nav>
+
+<script>
+const sections=['inicio','mapa','estadisticas','reportar','juridico'];
+let mapInit=false;
+let deferredPrompt=null;
+
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();deferredPrompt=e;
+  document.getElementById('install-banner').classList.remove('hidden');
+});
+document.getElementById('install-btn').addEventListener('click',async()=>{
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt=null;
+  document.getElementById('install-banner').classList.add('hidden');
+});
+function closeBanner(){document.getElementById('install-banner').classList.add('hidden')}
+
+function showSection(id){
+  sections.forEach(s=>{
+    document.getElementById('sec-'+s)?.classList.add('hidden');
+    document.getElementById('bn-'+s)?.classList.remove('active');
+  });
+  document.getElementById('sec-'+id).classList.remove('hidden');
+  document.getElementById('bn-'+id)?.classList.add('active');
+  if(id==='mapa'&&!mapInit)initMap();
+  if(id==='reportar'){setTimeout(initMiniMap,200);}
+  if(id==='estadisticas')renderStats();
+  window.scrollTo(0,0);
+}
+
+// Centro de referencia mientras carga el GeoJSON
+const MUGICA_CENTER = [-34.5805, -58.3700];
+const GEOJSON_URL = 'https://cdn.buenosaires.gob.ar/datosabiertos/datasets/ministerio-de-desarrollo-humano-y-habitat/barrios-populares/barrios_populares_poligono.geojson';
+
+async function cargarPoligonoMugica(mapa) {
+  try {
+    const res = await fetch(GEOJSON_URL);
+    const data = await res.json();
+    const feature = data.features.find(f =>
+      f.properties.nombre && (
+        f.properties.nombre.toLowerCase().includes('mugica') ||
+        f.properties.nombre.toLowerCase().includes('31')
+      )
+    );
+    if (!feature) { console.warn('No se encontró el feature de Mugica'); return; }
+    const layer = L.geoJSON(feature, {
+      style: { color:'#1565C0', weight:2.5, fillColor:'#1565C0', fillOpacity:0.10, dashArray:'6,4' }
+    }).addTo(mapa);
+    layer.bindTooltip('<b style="color:#1565C0">Barrio Padre Carlos Mugica</b>', {sticky:true});
+    mapa.fitBounds(layer.getBounds(), {padding:[20,20]});
+  } catch(e) {
+    console.warn('No se pudo cargar el GeoJSON oficial:', e);
+  }
+}
+
+async function cargarPoligonoMini(mapa) {
+  try {
+    const res = await fetch(GEOJSON_URL);
+    const data = await res.json();
+    const feature = data.features.find(f =>
+      f.properties.nombre && (
+        f.properties.nombre.toLowerCase().includes('mugica') ||
+        f.properties.nombre.toLowerCase().includes('31')
+      )
+    );
+    if (!feature) return;
+    L.geoJSON(feature, {
+      style: { color:'#1565C0', weight:2, fillColor:'#1565C0', fillOpacity:0.07, dashArray:'5,4' }
+    }).bindTooltip('Barrio Padre Carlos Mugica', {permanent:false}).addTo(mapa);
+  } catch(e) {
+    console.warn('No se pudo cargar el GeoJSON en minimapa:', e);
+  }
+}
+
+let mainMap = null;
+let reporteMarkers = [];
+let modoReporte = false;
+
+function initMap(){
+  mapInit=true;
+  mainMap = L.map('map',{zoomControl:false}).setView(MUGICA_CENTER,16);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(mainMap);
+  L.control.zoom({position:'bottomright'}).addTo(mainMap);
+
+  // Cargar polígono oficial desde datos CABA
+  cargarPoligonoMugica(mainMap);
+
+  // Reportes de ejemplo con datos para filtrar
+  const reportesData = [
+    {lat:-34.5782,lng:-58.3742,sector:'San Martín',estado:'En gestión',desc:'Problema en acceso'},
+    {lat:-34.5808,lng:-58.3672,sector:'Güemes',estado:'Pendiente',desc:'Vía interna cortada'},
+    {lat:-34.5799,lng:-58.3648,sector:'Playón Este',estado:'Resuelto',desc:'Espacio comunitario'},
+    {lat:-34.5792,lng:-58.3772,sector:'Cristo Obrero',estado:'Pendiente',desc:'Reporte de vecinos'},
+    {lat:-34.5838,lng:-58.3718,sector:'YPF',estado:'En gestión',desc:'Luminaria rota'},
+  ];
+
+  const colors={Resuelto:'#2E7D32','En gestión':'#E65100',Pendiente:'#C62828'};
+
+  reportesData.forEach(r=>{
+    const icon=L.divIcon({className:'',
+      html:`<div style="background:${colors[r.estado]};width:14px;height:14px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 2px 5px rgba(0,0,0,.4)"></div>`,
+      iconSize:[14,14], iconAnchor:[7,7]});
+    const mk = L.marker([r.lat,r.lng],{icon}).addTo(mainMap);
+    mk.bindPopup(`
+      <div style="font-size:13px;min-width:150px">
+        <b style="color:#1565C0">${r.sector}</b><br>
+        <span style="color:#555;font-size:12px">${r.desc}</span><br>
+        <span style="color:${colors[r.estado]};font-weight:700;font-size:12px">● ${r.estado}</span>
+        <br><button onclick="irAReportarConUbicacion(${r.lat},${r.lng},'${r.sector}')"
+          style="margin-top:6px;width:100%;background:#1565C0;color:#fff;border:none;border-radius:6px;padding:5px;font-size:11px;font-weight:700;cursor:pointer">
+          + Agregar reporte aquí
+        </button>
+      </div>`);
+    mk._estado = r.estado;
+    reporteMarkers.push(mk);
+  });
+
+  mainMap.setView(MUGICA_CENTER, 16);
+
+  // Clic en el mapa para modo reporte
+  mainMap.on('click', e => {
+    if(!modoReporte) return;
+    desactivarModoReporte();
+    irAReportarConUbicacion(e.latlng.lat, e.latlng.lng, null);
+  });
+}
+
+function filterMaparkers(estado, btn) {
+  document.querySelectorAll('.map-filter').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  reporteMarkers.forEach(mk => {
+    if(estado === 'todos' || mk._estado === estado) {
+      if(!mainMap.hasLayer(mk)) mainMap.addLayer(mk);
+    } else {
+      if(mainMap.hasLayer(mk)) mainMap.removeLayer(mk);
+    }
+  });
+}
+
+function activarModoReporte() {
+  modoReporte = true;
+  document.getElementById('btn-reportar-mapa').style.background = '#C62828';
+  document.getElementById('btn-reportar-mapa').textContent = '✋ Modo activo — tocá el punto del problema';
+  document.getElementById('hint-reporte-mapa').classList.remove('hidden');
+  if(mainMap) mainMap.getContainer().style.cursor = 'crosshair';
+}
+
+function desactivarModoReporte() {
+  modoReporte = false;
+  document.getElementById('btn-reportar-mapa').style.background = 'var(--pj-blue)';
+  document.getElementById('btn-reportar-mapa').innerHTML = '📍 Marcá un problema en el mapa';
+  document.getElementById('hint-reporte-mapa').classList.add('hidden');
+  if(mainMap) mainMap.getContainer().style.cursor = '';
+}
+
+function irAReportarConUbicacion(lat, lng, sector) {
+  showSection('reportar');
+  setTimeout(() => {
+    initMiniMap();
+    setMarker(lat, lng);
+    miniMap.setView([lat, lng], 17);
+    if(sector) {
+      const sel = document.getElementById('sector');
+      for(let i=0; i<sel.options.length; i++) {
+        if(sel.options[i].text === sector) { sel.selectedIndex = i; break; }
+      }
+    }
+  }, 300);
+}
+
+function renderStats(){
+  const sectores=['San Martín','Inmigrantes','Güemes','Playón Este','Playón Oeste','YPF','Ferroviario','Cristo Obrero','Comunicaciones'];
+  document.getElementById('bar-sectores').innerHTML=sectores.map(s=>`
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:12px;color:#555;width:120px;flex-shrink:0">${s}</span>
+      <div style="flex:1;background:#E3F2FD;border-radius:4px;height:20px;display:flex;align-items:center;padding-left:8px">
+        <span style="font-size:11px;color:#90A4AE">Sin reportes</span>
+      </div>
+      <span style="font-size:12px;font-weight:700;width:20px;text-align:right;color:var(--pj-blue)">0</span>
+    </div>`).join('');
+}
+
+function submitJuridico(){
+  const area=document.getElementById('area-legal').value;
+  const wsp=document.getElementById('wsp-jur').value;
+  const desc=document.getElementById('desc-jur').value;
+  const conf=document.getElementById('conf-check').checked;
+  if(!area||!wsp||!desc){alert('Por favor completá el área, la descripción y tu WhatsApp.');return;}
+  if(!conf){alert('Por favor aceptá el aviso de confidencialidad para continuar.');return;}
+  document.getElementById('form-juridico').classList.add('hidden');
+  document.getElementById('success-juridico').classList.remove('hidden');
+}
+function resetJuridico(){
+  document.getElementById('form-juridico').classList.remove('hidden');
+  document.getElementById('success-juridico').classList.add('hidden');
+  ['area-legal','sector-jur','desc-jur','nombre-jur','wsp-jur'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('conf-check').checked=false;
+}
+function handleFile(i){if(i.files[0])document.getElementById('file-name').textContent='📎 '+i.files[0].name;}
+function submitForm(){
+  if(!document.getElementById('cat').value||!document.getElementById('sector').value||!document.getElementById('desc').value){
+    alert('Por favor completá la categoría, el sector y la descripción.');return;
+  }
+  if(!document.getElementById('lat-input').value){
+    alert('Por favor marcá la ubicación del problema en el mapa.');return;
+  }
+  document.getElementById('form-content').classList.add('hidden');
+  document.getElementById('success-msg').classList.remove('hidden');
+}
+
+let miniMap=null, marker=null;
+
+function initMiniMap(){
+  if(miniMap) return;
+  miniMap = L.map('mini-map',{zoomControl:true}).setView(MUGICA_CENTER,16);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(miniMap);
+
+  // Cargar polígono oficial como referencia visual
+  cargarPoligonoMini(miniMap);
+
+  miniMap.on('click', e => setMarker(e.latlng.lat, e.latlng.lng));
+}
+
+function setMarker(lat, lng){
+  if(marker) miniMap.removeLayer(marker);
+  marker = L.marker([lat,lng],{
+    icon: L.divIcon({className:'',
+      html:`<div style="background:#C62828;width:20px;height:20px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.45)"></div>`,
+      iconAnchor:[10,10]
+    }),
+    draggable:true
+  }).addTo(miniMap);
+  marker.on('dragend', e => {
+    const p = e.target.getLatLng();
+    updateCoords(p.lat, p.lng);
+  });
+  miniMap.panTo([lat,lng]);
+  updateCoords(lat, lng);
+}
+
+function updateCoords(lat, lng){
+  document.getElementById('lat-input').value = lat.toFixed(6);
+  document.getElementById('lng-input').value = lng.toFixed(6);
+  const el = document.getElementById('coords-display');
+  el.innerHTML = `📍 <strong>Ubicación marcada</strong> — Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)} <span style="color:#2E7D32">✓</span>`;
+  el.style.cssText = 'font-size:12px;color:#0D2B5E;text-align:center;padding:6px;background:#E8F5E9;border-radius:6px;border:1px solid #A5D6A7';
+}
+
+
+
+function useMyLocation(){
+  if(!navigator.geolocation){alert('Tu dispositivo no soporta geolocalización.');return;}
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      initMiniMap();
+      setMarker(pos.coords.latitude, pos.coords.longitude);
+      miniMap.setView([pos.coords.latitude, pos.coords.longitude],18);
+    },
+    () => alert('No pudimos obtener tu ubicación. Marcá el punto manualmente en el mapa.')
+  );
+}
+function resetForm(){
+  document.getElementById('form-content').classList.remove('hidden');
+  document.getElementById('success-msg').classList.add('hidden');
+  ['cat','sector','dir','desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('file-name').textContent='';
+}
+</script>
+</body>
+</html>
