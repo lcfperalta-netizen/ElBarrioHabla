@@ -561,6 +561,9 @@ async function sbFetch(path, options = {}) {
 
 // Centro de referencia mientras carga el GeoJSON
 const MUGICA_CENTER = [-34.5805, -58.3700];
+// Datos abiertos GCBA — fuente: data.buenosaires.gob.ar
+const GCBA_COMUNAS_URL = 'https://cdn.buenosaires.gob.ar/datosabiertos/datasets/innovacion-transformacion-digital/comunas/comunas.geojson';
+const GCBA_BARRIOS_URL = 'https://cdn.buenosaires.gob.ar/datosabiertos/datasets/innovacion-transformacion-digital/barrios/barrios.geojson';
 // Polígono oficial del Barrio Padre Mugica
 // Fuente: datos.buenosaires.gob.ar — id 467, nombre "100", barrio "Barrio Padre Mugica"
 const MUGICA_FEATURE = {"type":"Feature","properties":{"id":467,"nombre":"100","barrio":"Barrio Padre Mugica"},"geometry":{"type":"Polygon","coordinates":[[[-58.382241697277166,-34.583710897040461],[-58.3822228444971,-34.583718760149402],[-58.382220534031333,-34.583714715980996],[-58.382177414313205,-34.583727877637223],[-58.38218068531674,-34.583736136001541],[-58.382162070095816,-34.583741228793492],[-58.382094806974578,-34.58375323159418],[-58.382048117611433,-34.583768408509982],[-58.382028780674865,-34.583778379200318],[-58.382020805951107,-34.583782491199599],[-58.382015796393638,-34.583776168933476],[-58.3819960922254,-34.583784701925381],[-58.381970419600805,-34.583795819580807],[-58.381956849367896,-34.58380240240497],[-58.381977313349338,-34.583832929098499],[-58.381973134032769,-34.583834858974022],[-58.381928421046943,-34.583854439165684],[-58.381929090777675,-34.583855580236843],[-58.381900443663511,-34.583867169165302],[-58.381808619795258,-34.583910341562493],[-58.381860374084837,-34.583991321659234],[-58.381947960391258,-34.583957528895311],[-58.382029930526784,-34.583925210478661],[-58.38206658104388,-34.583911742769764],[-58.382066353426538,-34.583911343012176],[-58.382097348172358,-34.583898865389827],[-58.382102251773446,-34.583896891335428],[-58.382101503066011,-34.583895668815444],[-58.382166478590499,-34.583870212210542],[-58.38216597038425,-34.583869382730278],[-58.382235880902535,-34.583843068612289],[-58.382283065225124,-34.583824168502879],[-58.382283085135725,-34.583824050913044],[-58.382285117529939,-34.583827603199786],[-58.382318509397628,-34.583813852228573],[-58.382318368670227,-34.583813616709641],[-58.382356694134849,-34.583799529193058],[-58.3823941766708,-34.583783759459379],[-58.382441484421648,-34.583763856015835],[-58.382440925770233,-34.583762869341996],[-58.382509742183025,-34.583735156120369],[-58.382485020776727,-34.583671864809659],[-58.382458125548091,-34.583606971989347],[-58.382420090443368,-34.58361785737965],[-58.382376933671104,-34.583639193569063],[-58.382372010179694,-34.583641152416313],[-58.382330480891568,-34.583657675137097],[-58.382277704437385,-34.583677697864545],[-58.382281891195426,-34.583684690984271],[-58.382249794074575,-34.583698988254369],[-58.382237529745296,-34.583704451246547],[-58.382241697277166,-34.583710897040461]]]}};
@@ -589,6 +592,47 @@ let mainMap = null;
 let reporteMarkers = [];
 let modoReporte = false;
 
+async function cargarCapasGCBA(mapa) {
+  try {
+    const [resComunas, resBarrios] = await Promise.all([
+      fetch(GCBA_COMUNAS_URL),
+      fetch(GCBA_BARRIOS_URL)
+    ]);
+    const [dataComunas, dataBarrios] = await Promise.all([
+      resComunas.json(),
+      resBarrios.json()
+    ]);
+
+    const layerBarrios = L.geoJSON(dataBarrios, {
+      style: { color:'#1565C0', weight:1, fillOpacity:0, dashArray:'4,3', opacity:0.45 },
+      onEachFeature(f, layer) {
+        layer.bindTooltip(
+          `<b style="font-size:12px">${f.properties.nombre}</b><br><span style="font-size:10px;color:#555">Comuna ${f.properties.comuna}</span>`,
+          { sticky:true }
+        );
+      }
+    });
+
+    const layerComunas = L.geoJSON(dataComunas, {
+      style: { color:'#E65100', weight:2.5, fillOpacity:0, dashArray:'8,5', opacity:0.5 },
+      onEachFeature(f, layer) {
+        layer.bindTooltip(
+          `<b style="font-size:12px">Comuna ${f.properties.comuna}</b><br><span style="font-size:10px;color:#555">${f.properties.barrios}</span>`,
+          { sticky:true }
+        );
+      }
+    });
+
+    L.control.layers(null, {
+      'Barrios CABA': layerBarrios,
+      'Comunas CABA': layerComunas
+    }, { position:'topright', collapsed:false }).addTo(mapa);
+
+  } catch(e) {
+    console.warn('Capas GCBA no disponibles:', e);
+  }
+}
+
 function initMap(){
   mapInit=true;
   mainMap = L.map('map',{zoomControl:false}).setView(MUGICA_CENTER,16);
@@ -597,6 +641,9 @@ function initMap(){
 
   // Polígono oficial embebido
   cargarPoligonoMugica(mainMap);
+
+  // Capas de datos abiertos GCBA
+  cargarCapasGCBA(mainMap);
 
   // Cargar reportes reales desde Supabase
   cargarReportesEnMapa();
